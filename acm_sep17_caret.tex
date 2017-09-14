@@ -1,0 +1,496 @@
+\documentclass[presentation]{beamer}
+
+
+\mode<presentation>{\usetheme{Singapore}}
+  % or ...
+
+%\setbeamercovered{dynamic}
+  % or whatever (possibly just delete it)
+  %\usecolortheme{whale}
+%}
+
+% Packages
+
+\usepackage[latin1]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{tabularx}
+\usepackage{array}
+%\usepackage{subfig}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{color}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+\usepackage{bbding}
+\usepackage{pifont}
+
+% Margins
+
+%\oddsidemargin 0.0in
+%\evensidemargin 0.0in
+%\textwidth = 3.0in
+%\textheight = 6.5in
+
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+
+\newcommand{\dpar}[2]{\dfrac{\partial #1}{\partial #2}}
+\newcommand{\tpar}[2]{\tfrac{\partial #1}{\partial #2}}
+
+\definecolor{DarkGreen}{rgb}{0.1,0.6,0.0}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\green}[1]{\textcolor{DarkGreen}{#1}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\yellow}[1]{\textcolor{yellow}{#1}}
+\newcommand{\black}[1]{\textcolor{black}{#1}}
+
+
+
+
+\title[]{Model Training and Validation with caret}
+\author[Alexander C. Mueller, PhD]{Alexander C. Mueller, PhD}
+\date{September 14, 2017}
+
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}
+\frametitle{What is caret?  Why should I use it?}
+
+What?
+\begin{itemize}
+
+\item It's an R library!
+\item \textbf{c}lassification \textbf{a}nd \textbf{re}gression \textbf{t}raining
+\item caret contains tools for creating predictive models.
+\item Created by Max Kuhn at Pfizer.
+
+\end{itemize}
+
+Why?
+\begin{itemize}
+
+\item Access many algorithms from one interface.
+\item Handle preliminary work uniformly.
+\item Focus on training and testing.
+
+\end{itemize}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{What is covered in this talk?}
+
+Part 1: Motivating caret
+\begin{itemize}
+
+\item Subsample data for testing and training.
+\item How much model complexity is desirable?
+\item Fear noise and avoid learning about it.
+
+\end{itemize}
+
+Part 2: Working with caret
+\begin{itemize}
+
+\item Play with the Titanic dataset.
+\item Spotlight some key functions in caret.
+\item Create and compare some binary predictive models using different algorithms.
+\item Suggestions for learning more.
+
+\end{itemize}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{An Illustrative Example}
+
+Train a model to compute the sin function given some sample points.
+\begin{itemize}
+
+\item Noise has been added to represent real-world measurement errors.
+\item We know sin($x$) has a Taylor series $x - \frac{x^3}{3!} + \frac{x^5}{5!} - ...$ 
+\item The powers $x$, $x^2$, $x^3$ of $x$ should work as features.
+
+\end{itemize}
+We already know the perfect-world, zero-noise answer.  The point of this exercise is to examine the effect of the noise.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Learning sine}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{sin.jpeg}
+\end{center}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Learning sine}
+
+\begin{center}
+\includegraphics{sin_def.png}
+\end{center}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{How much complexity?}
+
+Model complexity, and how to get the right amount of it, is key.
+\begin{itemize}
+
+\item Too little complexity and you're not really trying.
+\item Too much complexity is idle hands turning to evil deeds.
+\item Complex models memorize noise, relate new data to dumb memories of noise.
+
+\end{itemize}
+
+Our models of sine will provide a window into these issues.
+\begin{itemize}
+
+\item For our polynomial model, complexity is the degree (one less than the number of features).
+\item Degree 0 is the constant polynomial $f(x)=0$, not very sine-like.
+\item We'll next explore just what goes wrong in high degree.
+
+\end{itemize}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Training Error}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{training_code.png}
+%\end{center}
+
+\vspace{5mm}
+
+For each degree $i$
+\begin{itemize}
+
+\item train a regression model,
+\item measure its accuracy (the $L^1$ error is non-standard),
+\item and plot!
+
+\end{itemize}
+
+What do you expect this plot to look like?
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Training Error}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{training_all.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Training Error, High Complexity (Degree)}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{training_high.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{``Noiseless'' Error}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{noiseless_all.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{``Noiseless'' Error, Optimal Complexity (Degree)}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{noiseless_low.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{``Noiseless'' Error, High Complexity (Degree)}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{noiseless_high.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Testing on ``New'' Data}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{sin_train.png}
+%\end{center}
+
+\vspace{5mm}
+
+How will our models generalize to new data?
+
+\begin{itemize}
+\item Separate the points with $x$ in a smaller interval.
+\item Repeat our training loop for these points.
+\item Compute $y$ values for the remaining ``test'' points.
+\end{itemize}
+
+What will be the degree of the most accurate polynomial?
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Testing Error, High Complexity (Degree)}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{testing_all.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Testing Error, Optimal Complexity (Degree)}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{testing_low.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Residues for the Optimal Model vs. More Complex (Higher Degree}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{residues.jpeg}
+%\end{center}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Training Error vs. ``Noiseless'' Error}
+
+Some important, vague, truthy ideas:
+
+\begin{itemize}
+
+\item \textbf{Overtraining} is when model complexity memorizes noise.
+\item Complexity without meaning inevitably does complex, meaningless things to new data.
+\item A good model is smart enough to learn the signal, too dumb to learn the noise.
+
+\end{itemize}
+
+Why do the ``noiseless'' and testing errors increase while training error continues to decrease?
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Training vs. Testing Data}
+
+In practice, model building typically involves training many models of varying complexity, evaluating their accuracy, and finding the sweet spot.
+
+\begin{itemize}
+
+\item \textbf{Testing data} is excluded from the training process so the model can't learn its noise.
+\item ``Noiseless'' data is not available, but testing data can serve the same purpose.
+\item Evaluate a candidate model according to its behavior on the testing data.
+
+\end{itemize}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Enter caret}
+
+caret handles shared model-building concerns in a uniform way over many types of model.  We'll use
+
+\begin{itemize}
+
+\item \textbf{createDataPartition(...)} for splitting datasets,
+\item \textbf{train(...)} for training models,
+\item the \textbf{grid} and \textbf{trControl} options, and
+\item \textbf{confusionMatrix(...)} for evaluation
+
+\end{itemize}
+
+as we build some models on the Titanic dataset.  This dataset contains information about passengers on the famously doomed ocean liner Titanic including their fate.  Life and death is the ultimate binary outcome.
+
+\vspace{5mm}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{titanic_row.png}
+%\end{center}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{The Titanic Dataset}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{titanic_factor.png}
+%\end{center}
+
+\vspace{5mm}
+
+Make sure your outcome variable is a factor or caret may get confused about what sort of model you are building.  This dataset comes with ``titanic\_train'' and ``titanic\_test'' data frames but we will work only with the former.
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Splitting data}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{data_part.png}
+%\end{center}
+
+\vspace{5mm}
+
+createDataPartition splits our data into testing and training sets according to a proportion we input.  It is necessary to tell the function which is your outcome variable so it can ensure outcomes are distributed evenly between the two groups.  In this case, three quarters of the data goes to the training set.
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Train a Random Forest}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{train_rf.png}
+%\end{center}
+
+\vspace{5mm}
+
+The string "rf" is the only part of this code in any way unique to the random forest algorithm.  At time of writing, 238 algorithms can be called (from other R libraries) using train(...) and each has a unique code.  
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Random Forest Under the Hood}
+
+%\begin{center}
+\includegraphics[width=1\textwidth]{rf_conf.png}
+%\end{center}
+
+\vspace{5mm}
+
+In accordance with our theme, random forest works by training models of varying complexity on subsampled data.  
+\end{frame}
+
+%%%
+
+\begin{frame}
+
+\begin{center}
+\includegraphics[height=1\textheight]{rf_conf_two.png}
+\end{center}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Some Nice Features}
+
+caret will automatically import libraries needed for models called via train(...).  I have thus far only explicitly referenced three libraries.
+
+\begin{center}
+\includegraphics[width=4cm]{include.png}
+\end{center}
+
+caret will even install libraries automatically (with your permission) if necessary.
+
+\begin{center}
+\includegraphics[width=1\textwidth]{rferns_install.png}
+\end{center}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Model Selection}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{models.png}
+\end{center}
+
+One benefit of a uniform interface is that allows easy iteration over a group of candidate algorithms.  In this case, this is as simple as interating a nearly uniform call to train(...) over a vector of the relevant code strings.
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Model Selection Results}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{models.jpeg}
+\end{center}
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Model Tuning}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{tune.png}
+\end{center}
+
+The \textbf{tuneGrid} and \textbf{trControl} options provide additional control over the training process.  Once again, the interface is uniform although not every parameter is relevant to every model.
+
+\end{frame}
+
+%%%
+
+\begin{frame}
+\frametitle{Model Tuning}
+
+\begin{center}
+\includegraphics[width=1\textwidth]{rfTwo.png}
+\end{center}
+
+Note the choices of mtry and the new-cross validation procedure.
+
+\end{frame}
+
+%%%
+
+\end{document}
+
+
+
